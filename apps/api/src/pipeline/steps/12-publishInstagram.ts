@@ -1,5 +1,5 @@
-import type { PipelineStep } from './types.js';
-import { logger } from '../config/logger.js';
+import type { PipelineStep } from '../types.js';
+import { logger } from '../../config/logger.js';
 
 export const publishInstagramStep: PipelineStep = async (ctx) => {
   if (!ctx.post) return;

@@ -1,4 +1,4 @@
-import { prompts, type TagsPromptInput } from '../prompts/index.js';
+import { prompts, type GenerateTagsInput } from '../prompts/index.js';
 import { getTextProvider } from '../providers/index.js';
 import { parseJson, slugify } from './shared.js';
 
@@ -6,13 +6,13 @@ export interface GeneratedTags {
   tags: string[];
 }
 
-export async function generateTags(input: TagsPromptInput): Promise<GeneratedTags> {
+export async function generateTags(input: GenerateTagsInput): Promise<GeneratedTags> {
   const provider = getTextProvider();
   const result = await provider.generateText({
     jsonMode: true,
     messages: [
-      { role: 'system', content: prompts.tags.system },
-      { role: 'user', content: prompts.tags.user(input) },
+      { role: 'system', content: prompts.generateTags.system },
+      { role: 'user', content: prompts.generateTags.user(input) },
     ],
   });
   const data = parseJson<Partial<GeneratedTags>>(result.text);

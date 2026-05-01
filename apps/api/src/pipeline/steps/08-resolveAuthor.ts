@@ -1,5 +1,5 @@
-import { Author } from '../models/Author.js';
-import type { PipelineStep } from './types.js';
+import { Author } from '../../models/Author.js';
+import type { PipelineStep } from '../types.js';
 
 /**
  * Resolve o autor do post.

@@ -1,4 +1,4 @@
-import { prompts, type SiteAnalysisPromptInput } from '../prompts/index.js';
+import { prompts, type AnalyzeSitePromptInput as SiteAnalysisPromptInput } from '../prompts/index.js';
 import { getTextProvider } from '../providers/index.js';
 import { parseJson } from './shared.js';
 
@@ -26,8 +26,8 @@ export async function analyzeSite(input: SiteAnalysisPromptInput): Promise<SiteA
   const result = await provider.generateText({
     jsonMode: true,
     messages: [
-      { role: 'system', content: prompts.analyze.system },
-      { role: 'user', content: prompts.analyze.user(input) },
+      { role: 'system', content: prompts.analyzeSite.system },
+      { role: 'user', content: prompts.analyzeSite.user(input) },
     ],
   });
   const data = parseJson<{ insights?: unknown[] }>(result.text);
