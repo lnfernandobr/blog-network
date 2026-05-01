@@ -1,0 +1,17 @@
+node_modules
+.next
+dist
+build
+.env.local
+# .env é commitado como template de produção (preencher antes de subir)
+*.log
+.logs/
+.DS_Store
+.turbo
+.cache
+coverage
+.tsbuildinfo
+*.tsbuildinfo
+out
+.idea/
+.vscode/

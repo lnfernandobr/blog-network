@@ -1,0 +1,189 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import type { ChannelDoc } from '../models/Channel.js';
+import type { AuthorDoc } from '../models/Author.js';
+import type { CategoryDoc } from '../models/Category.js';
+import type { TagDoc } from '../models/Tag.js';
+import type { PostDoc } from '../models/Post.js';
+import type { RunDoc } from '../models/Run.js';
+
+const toIso = (d: Date | string | undefined | null): string | undefined =>
+  d ? (d instanceof Date ? d.toISOString() : new Date(d).toISOString()) : undefined;
+
+const idOf = (v: any): string => (typeof v === 'string' ? v : v?.toString?.() ?? '');
+
+export function channelToDto(c: ChannelDoc & { _id: any; createdAt?: Date; updatedAt?: Date }) {
+  return {
+    id: idOf(c._id),
+    slug: c.slug,
+    name: c.name,
+    niche: c.niche,
+    siteUrl: c.siteUrl,
+    language: c.language,
+    timezone: c.timezone,
+    active: c.active,
+    publishFrequency: (c.publishFrequency ?? 'daily') as 'daily' | 'weekly' | 'custom',
+    publishTimes: c.publishTimes ?? [],
+    postsPerSlot: c.postsPerSlot ?? 1,
+    publishWeekdays: c.publishWeekdays ?? [0, 1, 2, 3, 4, 5, 6],
+    defaultAuthorName: c.defaultAuthorName ?? 'Fernando',
+    notes: c.notes ?? undefined,
+    lastAudit: c.lastAudit ? auditToDto(c.lastAudit as any) : undefined,
+    createdAt: toIso(c.createdAt) ?? new Date().toISOString(),
+    updatedAt: toIso(c.updatedAt) ?? new Date().toISOString(),
+  };
+}
+
+export function auditToDto(a: any) {
+  return {
+    fetchedAt: toIso(a.fetchedAt) ?? new Date().toISOString(),
+    reachable: !!a.reachable,
+    pagespeed: a.pagespeed
+      ? {
+          fetchedAt: toIso(a.pagespeed.fetchedAt) ?? new Date().toISOString(),
+          mobile: a.pagespeed.mobile ? cloneStrategy(a.pagespeed.mobile) : null,
+          desktop: a.pagespeed.desktop ? cloneStrategy(a.pagespeed.desktop) : null,
+          error: a.pagespeed.error,
+        }
+      : null,
+    geo: { ...a.geo },
+    visits: { ...a.visits },
+    recommendations: a.recommendations ?? [],
+    aiInsights: a.aiInsights
+      ? {
+          generatedAt: toIso(a.aiInsights.generatedAt) ?? new Date().toISOString(),
+          provider: a.aiInsights.provider,
+          insights: a.aiInsights.insights ?? [],
+        }
+      : undefined,
+  };
+}
+
+function cloneStrategy(s: any) {
+  return {
+    scores: { ...s.scores },
+    metrics: { ...s.metrics },
+    topIssues: (s.topIssues ?? []).map((t: any) => ({
+      id: t.id,
+      title: t.title,
+      displayValue: t.displayValue,
+      score: t.score,
+      category: t.category,
+    })),
+  };
+}
+
+export function authorToDto(a: AuthorDoc & { _id: any; createdAt?: Date; updatedAt?: Date }) {
+  return {
+    id: idOf(a._id),
+    channelId: idOf(a.channelId),
+    slug: a.slug,
+    name: a.name,
+    jobTitle: a.jobTitle ?? undefined,
+    shortBio: a.shortBio ?? undefined,
+    bio: a.bio ?? undefined,
+    avatarUrl: a.avatarUrl ?? undefined,
+    expertise: a.expertise ?? [],
+    credentials: a.credentials ?? [],
+    socials: a.socials ?? {},
+    createdAt: toIso(a.createdAt) ?? new Date().toISOString(),
+    updatedAt: toIso(a.updatedAt) ?? new Date().toISOString(),
+  };
+}
+
+export function categoryToDto(c: CategoryDoc & { _id: any; createdAt?: Date; updatedAt?: Date }) {
+  return {
+    id: idOf(c._id),
+    channelId: idOf(c.channelId),
+    slug: c.slug,
+    name: c.name,
+    description: c.description ?? undefined,
+    color: c.color,
+    iconKey: c.iconKey ?? undefined,
+    order: c.order ?? 0,
+    createdAt: toIso(c.createdAt) ?? new Date().toISOString(),
+    updatedAt: toIso(c.updatedAt) ?? new Date().toISOString(),
+  };
+}
+
+export function tagToDto(t: TagDoc & { _id: any; createdAt?: Date; updatedAt?: Date }) {
+  return {
+    id: idOf(t._id),
+    channelId: idOf(t.channelId),
+    slug: t.slug,
+    name: t.name,
+    createdAt: toIso(t.createdAt) ?? new Date().toISOString(),
+    updatedAt: toIso(t.updatedAt) ?? new Date().toISOString(),
+  };
+}
+
+export function postToDto(
+  p: PostDoc & {
+    _id: any;
+    createdAt?: Date;
+    updatedAt?: Date;
+    authorId: any;
+    categoryId: any;
+  },
+  populated?: { author?: AuthorDoc | null; category?: CategoryDoc | null },
+) {
+  return {
+    id: idOf(p._id),
+    channelId: idOf(p.channelId),
+    slug: p.slug,
+    title: p.title,
+    excerpt: p.excerpt,
+    content: p.content,
+    format: p.format,
+    status: p.status,
+    authorId: idOf(p.authorId),
+    categoryId: idOf(p.categoryId),
+    tags: p.tags ?? [],
+    coverImage: p.coverImage,
+    gallery: p.gallery ?? [],
+    metaTitle: p.metaTitle,
+    metaDescription: p.metaDescription,
+    keywords: p.keywords ?? [],
+    faq: p.faq ?? [],
+    howToSteps: p.howToSteps ?? [],
+    references: (p.references ?? []).map((r: any) => ({
+      title: r.title,
+      url: r.url,
+      publisher: r.publisher ?? undefined,
+      accessedAt: toIso(r.accessedAt),
+    })),
+    language: p.language,
+    wordCount: p.wordCount ?? 0,
+    readingTimeMinutes: p.readingTimeMinutes ?? 0,
+    publishedAt: toIso(p.publishedAt),
+    updatedAtContent: toIso(p.updatedAtContent),
+    featured: p.featured ?? false,
+    createdAt: toIso(p.createdAt) ?? new Date().toISOString(),
+    updatedAt: toIso(p.updatedAt) ?? new Date().toISOString(),
+    author: populated?.author ? authorToDto(populated.author as any) : undefined,
+    category: populated?.category ? categoryToDto(populated.category as any) : undefined,
+  };
+}
+
+export function runToDto(r: RunDoc & { _id: any }) {
+  return {
+    id: idOf(r._id),
+    channelId: idOf(r.channelId),
+    trigger: r.trigger,
+    cronExpression: r.cronExpression ?? undefined,
+    status: r.status,
+    startedAt: toIso(r.startedAt) ?? new Date().toISOString(),
+    finishedAt: toIso(r.finishedAt),
+    durationMs: r.durationMs ?? undefined,
+    steps: (r.steps ?? []).map((s: any) => ({
+      name: s.name,
+      status: s.status,
+      startedAt: toIso(s.startedAt),
+      finishedAt: toIso(s.finishedAt),
+      durationMs: s.durationMs,
+      message: s.message,
+      data: s.data,
+    })),
+    postId: r.postId ? idOf(r.postId) : undefined,
+    error: r.error ?? undefined,
+  };
+}
