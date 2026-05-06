@@ -10,6 +10,7 @@ import type {
   GenerateTextResult,
 } from '../types.js';
 import { saveImageBuffer } from '../../services/uploads.js';
+import { safeParseStructured } from './safeParse.js';
 
 const DEFAULT_TEXT_MODEL = 'gpt-4.1-mini';
 const DEFAULT_IMAGE_MODEL = 'gpt-image-1';
@@ -120,7 +121,10 @@ export class OpenAIProvider implements AIProvider {
     }
 
     return {
-      data: input.schema.parse(raw),
+      data: safeParseStructured(input.schema, raw, {
+        schemaName: input.schemaName,
+        provider: this.name,
+      }),
       provider: this.name,
       model,
     };

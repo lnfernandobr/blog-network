@@ -9,6 +9,7 @@ import type {
   GenerateTextInput,
   GenerateTextResult,
 } from '../types.js';
+import { safeParseStructured } from './safeParse.js';
 
 const DEFAULT_MODEL = 'claude-sonnet-4-6';
 const DEFAULT_MAX_TOKENS = 4096;
@@ -103,9 +104,13 @@ export class ClaudeProvider implements AIProvider {
       );
     }
 
-    // Validação Zod defensiva — em teoria a tool já garante structured input,
-    // mas validamos pra capturar regressões e formatar erros legíveis.
-    const parsed = input.schema.parse(toolUse.input);
+    // Validação Zod defensiva com retry de truncamento. Se algum campo
+    // string vier acima de max_length, o helper trunca e re-valida antes
+    // de derrubar o pipeline. Erros estruturais (tipo, enum) ainda lançam.
+    const parsed = safeParseStructured(input.schema, toolUse.input, {
+      schemaName: input.schemaName,
+      provider: this.name,
+    });
 
     return {
       data: parsed,
