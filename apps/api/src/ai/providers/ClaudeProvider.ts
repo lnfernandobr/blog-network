@@ -18,8 +18,11 @@ const DEFAULT_TEMPERATURE = 0.7;
  * - System prompt vai com `cache_control: ephemeral` quando >= ~500 tokens
  *   (regras editoriais + SEO/GEO). Reduz custo em ~90% em chamadas seguintes
  *   dentro de 5 minutos.
- * - jsonMode: prefilla o assistant com `{` pra forçar saída JSON. Não é
- *   JSON mode "oficial" (Anthropic não tem), mas funciona bem na prática.
+ * - jsonMode: instrui o modelo via system prompt a responder só com JSON;
+ *   sanitiza eventuais cercas markdown (```json ... ```) na resposta.
+ *   Não usamos prefill de assistant (`{`) porque modelos com extended
+ *   thinking — ex: claude-opus-4-7 — rejeitam mensagens que terminam em
+ *   role=assistant.
  * - Não suporta image — `generateImage` lança erro. Use OpenAIProvider
  *   pra imagem.
  */
@@ -44,7 +47,11 @@ export class ClaudeProvider implements AIProvider {
     const systemMsgs = input.messages.filter((m) => m.role === 'system');
     const conversation = input.messages.filter((m) => m.role !== 'system');
 
-    const systemText = systemMsgs.map((m) => m.content).join('\n\n');
+    let systemText = systemMsgs.map((m) => m.content).join('\n\n');
+    if (input.jsonMode) {
+      systemText +=
+        '\n\nFormato obrigatório de saída: responda APENAS com um JSON válido, sem nenhum texto antes ou depois, sem cercas de código markdown (sem ```), começando com `{` e terminando com `}`.';
+    }
     const cacheable = systemText.length > 2000;
     const system = cacheable
       ? [{ type: 'text' as const, text: systemText, cache_control: { type: 'ephemeral' as const } }]
@@ -54,11 +61,6 @@ export class ClaudeProvider implements AIProvider {
       role: m.role === 'assistant' ? 'assistant' : 'user',
       content: m.content,
     }));
-
-    // Pre-fill `{` quando jsonMode pra forçar JSON estruturado.
-    if (input.jsonMode) {
-      messages.push({ role: 'assistant', content: '{' });
-    }
 
     const model = input.model || this.model;
     const response = await this.client.messages.create({
@@ -72,9 +74,13 @@ export class ClaudeProvider implements AIProvider {
     const block = response.content.find((c): c is Anthropic.TextBlock => c.type === 'text');
     let text = block?.text ?? '';
 
-    // Se prefillou com `{`, recompõe JSON.
-    if (input.jsonMode && !text.trimStart().startsWith('{')) {
-      text = `{${text}`;
+    if (input.jsonMode) {
+      // Stripa cercas markdown (```json ... ``` ou ``` ... ```) caso o
+      // modelo tenha incluído mesmo com instrução em contrário.
+      text = text.trim();
+      const fence = /^```(?:json)?\s*\n([\s\S]*?)\n?```\s*$/;
+      const m = fence.exec(text);
+      if (m) text = m[1]!.trim();
     }
 
     return {
