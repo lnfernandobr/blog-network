@@ -129,20 +129,20 @@ export default function PromptsPage() {
                         className="w-full text-left"
                         aria-expanded={isOpen}
                       >
-                        <CardHeader className="flex flex-row items-start justify-between gap-4">
+                        <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
                           <div className="flex-1 min-w-0">
                             <CardTitle className="flex items-center gap-2 flex-wrap">
-                              <span>{p.name}</span>
+                              <span className="break-words">{p.name}</span>
                               <Badge variant="default" className="text-[10px]">
                                 v{p.version}
                               </Badge>
                             </CardTitle>
                             <p className="text-sm text-[var(--color-muted)] mt-1.5">{p.description}</p>
                           </div>
-                          <div className="flex items-center gap-3 flex-shrink-0">
-                            <div className="text-right text-xs text-[var(--color-muted)] font-mono">
-                              <div>~{p.systemTokens} sys</div>
-                              <div>~{p.userSampleTokens} user</div>
+                          <div className="flex items-center justify-between gap-3 sm:justify-end sm:flex-shrink-0">
+                            <div className="text-xs text-[var(--color-muted)] font-mono flex gap-3 sm:flex-col sm:gap-0 sm:text-right">
+                              <span>~{p.systemTokens} sys</span>
+                              <span>~{p.userSampleTokens} user</span>
                             </div>
                             {isOpen ? (
                               <ChevronDown className="h-4 w-4" />
@@ -195,7 +195,7 @@ function PromptBlock({
         </h3>
         <span className="text-xs text-[var(--color-muted)] font-mono">~{tokens} tokens</span>
       </div>
-      <pre className="text-xs leading-relaxed font-mono whitespace-pre-wrap break-words bg-[var(--color-bg)] border rounded-md p-4 max-h-[400px] overflow-auto">
+      <pre className="text-[11px] sm:text-xs leading-relaxed font-mono whitespace-pre-wrap break-words bg-[var(--color-bg)] border rounded-md p-3 sm:p-4 max-h-[400px] overflow-auto max-w-full">
         {content}
       </pre>
     </div>

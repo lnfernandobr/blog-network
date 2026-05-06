@@ -76,7 +76,7 @@ export function SettingsForm({ initial, aiModels, imageModels, onSave }: Props) 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-3xl">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-4">
+        <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
           <CardTitle>Provider de texto</CardTitle>
           {aiFellBack ? (
             <Badge variant="warn" className="gap-1">
@@ -131,7 +131,7 @@ export function SettingsForm({ initial, aiModels, imageModels, onSave }: Props) 
       </Card>
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-4">
+        <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
           <CardTitle>Provider de imagem</CardTitle>
           {imageFellBack ? (
             <Badge variant="warn" className="gap-1">

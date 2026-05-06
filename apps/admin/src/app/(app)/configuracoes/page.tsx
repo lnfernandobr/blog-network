@@ -68,20 +68,20 @@ export default function ConfiguracoesPage() {
         <CardContent className="py-5">
           <Link
             href="/configuracoes/prompts"
-            className="flex items-start gap-4 group"
+            className="flex items-start gap-3 sm:gap-4 group"
           >
-            <span className="rounded-lg bg-[var(--color-accent)]/15 p-2.5 text-[var(--color-accent)]">
+            <span className="rounded-lg bg-[var(--color-accent)]/15 p-2.5 text-[var(--color-accent)] flex-shrink-0">
               <ScrollText className="h-5 w-5" />
             </span>
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <h2 className="font-semibold group-hover:text-[var(--color-accent)] transition-colors">
                 Prompts da pipeline de IA
               </h2>
-              <p className="text-sm text-[var(--color-muted)] mt-1">
-                Ver todos os prompts (system + user) com estimativa de tokens. Read-only — para editar, mexa em <code>apps/api/src/ai/prompts.ts</code>.
+              <p className="text-sm text-[var(--color-muted)] mt-1 break-words">
+                Ver todos os prompts (system + user) com estimativa de tokens. Read-only. Para editar, mexa em <code className="break-all">apps/api/src/ai/prompts/</code>.
               </p>
             </div>
-            <span className="text-[var(--color-muted)] group-hover:text-[var(--color-fg)] transition-colors">→</span>
+            <span className="text-[var(--color-muted)] group-hover:text-[var(--color-fg)] transition-colors flex-shrink-0 self-center">→</span>
           </Link>
         </CardContent>
       </Card>
