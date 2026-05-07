@@ -13,6 +13,7 @@ export const generateImageStep: PipelineStep = async (ctx) => {
 
   ctx.cover = await generateImage({
     prompt: imageBrief.prompt,
+    negativePrompt: imageBrief.negativePrompt,
     alt: imageBrief.alt,
     seed: topic.refinedTitle,
   });

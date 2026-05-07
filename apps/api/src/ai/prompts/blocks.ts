@@ -85,8 +85,21 @@ export const TONE_DEFAULT = `Tom:
 - Português de Brasil contemporâneo. Sem "ipsis litteris", "outrossim", "destarte".`;
 
 /**
- * Anti-clichê de marketing. Aplicado em metadata e CTA.
+ * Voz natural: conversa de especialista, não palestra de IA. Aplicado na
+ * redação. Compatível com EDITORIAL e CLARITY (esses controlam regra dura;
+ * este aqui controla cadência humana).
  */
+export const NATURAL_VOICE = `Voz natural:
+- Escreva como um especialista explicando pra um amigo curioso, não como Wikipedia. Mesmo tema técnico vira conversa: usa "você", "a gente", "olha", "repara", "no fundo".
+- Mistura tamanho de frase de propósito. Frase curta, depois uma média, às vezes uma longa que respira. Cadência variada é assinatura humana.
+- Use analogia concreta do dia a dia pra ancorar conceito difícil ("é tipo X", "funciona parecido com Y"). Uma analogia boa vale 3 parágrafos de definição.
+- Termo técnico aparece, mas é traduzido na hora, em uma frase. Não esconda o termo (o leitor precisa pra pesquisar depois), mas explica do jeito que você explicaria no balcão.
+- Tese antes de jargão. "Dormir mal estraga memória" antes de "consolidação mnemônica hipocampal".
+- Permitido: começar frase com "E", "Mas", "Aí", "Só que". Permitido: contração informal ("pra", "tá", "dá pra"). Permitido: pergunta retórica curta usada com parcimônia.
+- Proibido: introdução tipo "neste artigo", recapitulação tipo "como vimos", listão de bullets que poderia ser frase.
+- Concretude > abstração. "30 segundos depois" vence "logo em seguida". "café preto, sem açúcar" vence "uma bebida estimulante".`;
+
+
 export const ANTI_HYPE = `Sem hype:
 - Proibidos: "incrível", "surpreendente", "revolucionário", "definitivo", "completo", "tudo o que você precisa saber", "VOCÊ NÃO VAI ACREDITAR", "O SEGREDO QUE NINGUÉM TE CONTOU".
 - Promessas só quando você pode cumpri-las. "Reduz tempo pra dormir em 14 dias" só se a evidência sustenta.

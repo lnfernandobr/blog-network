@@ -82,40 +82,55 @@ export const IMAGE_SPECS: Record<ImageUsage, ImageSpec> = {
 // ─── ART DIRECTION (em inglês, vai pro modelo) ─────────────────────────────
 
 /**
- * Diretriz fotográfica base. Define que tudo é editorial, fotográfico,
- * humano. Aplicada a todas as imagens.
+ * Diretriz fotográfica base. Empurra para o estética documental real ("magazine
+ * still", "candid"), adiciona micro-imperfeições e bloqueia os "AI tells" mais
+ * comuns (skin plástica, simetria perfeita, halo, glow, CGI-shine).
  */
-export const PHOTO_BASE = `Editorial photography style. Real photographic look. Natural lighting. Shallow depth of field. Visual focus on a single subject. No graphic design overlays. No infographic. No 3D render. No stylized illustration.`;
+export const PHOTO_BASE = `Documentary editorial photograph. Looks like a real magazine feature still or a published photojournalism frame, NOT an AI render and NOT a glossy stock photo. Authentic candid moment with environmental honesty: real lived-in detail, slight clutter where appropriate, natural asymmetry, imperfect surfaces. If a person appears, they show natural skin texture, pores, fine lines, individual hair strands — never airbrushed, never doll-like. Available light or motivated practical light only (window, lamp, sun). No studio strobe, no ringlight, no beauty lighting, no halo glow around the subject. Single dominant subject with intentional negative space. No graphic-design overlays, no infographics, no 3D renders, no stylized illustrations.`;
 
 /**
  * Linguagem visual da marca Sonoprofundo (default quando o canal não
  * sobrescreve). Outros canais podem sobrescrever via brand.notes ou
  * extensão futura do BrandProfile.
  */
-export const PHOTO_BRAND_DEFAULT = `Tone: warm, calm, intimate. Time of day: late afternoon golden hour or pre-dawn. Color palette: warm amber accent (#e8b66a feel), deep navy and charcoal shadows (#10141d feel), creamy off-white highlights. Surfaces: aged wood, soft linen, ceramic, brass. Avoid sterile minimalism and clinical white.`;
+export const PHOTO_BRAND_DEFAULT = `Tone: warm, calm, intimate. Time of day: late golden hour, blue hour, or deep early morning. Color palette: warm amber accent (#e8b66a feel), deep navy and charcoal shadows (#10141d feel), creamy off-white highlights. Surfaces: aged wood with visible grain and worn edges, soft creased linen, glazed ceramic with small imperfections, brass with patina. Avoid sterile minimalism, clinical white, and magazine-cover skin smoothing.`;
 
 /**
- * Especificação técnica fotográfica. Coerente com editorial moderno.
+ * Especificação técnica fotográfica. Calibrada pra parecer foto real, não CGI.
  */
-export const PHOTO_TECHNICAL = `Camera direction: shot on full-frame with 50mm or 85mm prime lens at f/2.0 to f/2.8. Subtle film grain. Natural color, no oversaturation. Sharp on subject, soft falloff on background.`;
+export const PHOTO_TECHNICAL = `Camera: full-frame body, 35mm or 50mm prime lens, f/1.8 to f/2.8, handheld feel. Color emulating Kodak Portra 400 or Fujifilm Pro 400H — warm midtones, gentle highlight rolloff, true blacks (not crushed). Visible micro film grain. Mild lens vignette on edges. Organic, non-uniform bokeh shape. No clarity-slider over-sharpening, no HDR ringing, no plastic smoothing, no over-saturation.`;
+
+/**
+ * Hook visual: instrução pra a imagem ter um detalhe que prende o olhar.
+ * Critério de "chama atenção" sem virar clickbait visual.
+ */
+export const PHOTO_HOOK = `Visual hook: include one decisive, slightly unexpected detail that anchors the eye and rewards a second look — a single object out of place, a sliver of contrasting color in an otherwise quiet palette, an asymmetric gesture, a hand caught mid-motion, a textural surprise. Avoid generic, posed, or strictly symmetrical setups. The image should feel like a frame the photographer waited for, not a setup.`;
+
+/**
+ * Texto na imagem: o gerador às vezes "alucina" letras. Ao invés de só proibir
+ * (instável), proibimos inglês explicitamente e exigimos pt-BR como fallback.
+ */
+export const TEXT_LANGUAGE_GUARD = `No rendered text, captions, labels, signs, book titles, packaging text, on-screen text, or typography of any kind in the image. If any text inadvertently appears, it MUST be in Brazilian Portuguese (pt-BR) — never English, never Latin gibberish, never decorative foreign-language text, never AI-typography artifacts. Brand names and logos are also forbidden.`;
 
 // ─── NEGATIVE PROMPTS (em camadas) ─────────────────────────────────────────
 
 /**
- * Negative prompt base aplicado em qualquer imagem.
+ * Negative prompt base. gpt-image-1 não tem campo negativo separado, então o
+ * skill `generateImage` injeta isso como "Strictly avoid: ..." no final do
+ * prompt principal antes de enviar pra API.
  */
-export const NEGATIVE_BASE = `text, words, letters, typography, watermark, logo, signature, stock photo overlay, low quality, blurry, jpeg artifacts, oversharpen, oversaturated, neon colors, plastic look, doll-like skin, uncanny faces, deformed hands, extra fingers, melted features, cartoon, anime, illustration, 3d render, cgi, painting, drawing, sketch.`;
+export const NEGATIVE_BASE = `text, words, letters, typography, captions, on-screen text, watermark, logo, signature, English text, foreign-language text, gibberish letters, AI-generated typography artifacts, garbled writing, lorem ipsum, fake brand names, stock photo overlay, low quality, jpeg artifacts, oversharpened, oversaturated, neon colors, plastic skin, doll-like skin, airbrushed smooth skin without pores, beauty-filter face, uncanny faces, dead eyes, deformed hands, extra fingers, melted features, fused fingers, glossy CGI surfaces, octane render look, video-game lighting, hdr ringing, glow halo around subject, perfectly symmetrical composition, sterile empty background, generic AI aesthetic, dreamy fantasy haze, surreal floating elements, cartoon, anime, illustration, 3d render, cgi, painting, drawing, sketch, vector art, concept art.`;
 
 /**
  * Negative específico para fotografia editorial (cover, OG, internal).
  */
-export const NEGATIVE_EDITORIAL = `clipart, infographic, diagram, chart, generic stock photography aesthetic, cliche business meeting, corporate handshake, smiling at camera, fake-looking studio lighting, ringlight reflection, beauty filter.`;
+export const NEGATIVE_EDITORIAL = `clipart, infographic, diagram, chart, generic stock-photo aesthetic, cliche business meeting, corporate handshake, smiling-at-camera lineup, fake studio lighting, ringlight reflection in eyes, beauty filter, instagram filter glow.`;
 
 /**
  * Negative específico para social/thumbnail (foco em escaneabilidade
  * em tamanho pequeno).
  */
-export const NEGATIVE_SOCIAL = `cluttered composition, multiple competing subjects, busy background, low contrast, dark muddy areas, text overlay, click-bait visual, exaggerated facial expression.`;
+export const NEGATIVE_SOCIAL = `cluttered composition, multiple competing subjects, busy background, low contrast, dark muddy areas, text overlay, click-bait visual, exaggerated forced facial expression.`;
 
 export function negativeFor(usage: ImageUsage): string {
   const editorial = ['cover', 'og', 'internal', 'pinterest'];

@@ -5,7 +5,9 @@ import {
   negativeFor,
   PHOTO_BASE,
   PHOTO_BRAND_DEFAULT,
+  PHOTO_HOOK,
   PHOTO_TECHNICAL,
+  TEXT_LANGUAGE_GUARD,
 } from '../visual.js';
 import type { BuildImagePromptInput } from '../inputs.js';
 import type { PromptDef } from '../types.js';
@@ -21,28 +23,35 @@ import type { PromptDef } from '../types.js';
 export const internalImagePrompt: PromptDef<BuildImagePromptInput> = {
   name: 'internal-image-prompt',
   category: 'visual',
-  version: '1.0.0',
+  version: '1.1.0',
   description: 'Gera prompt em inglês para imagem interna de apoio (3:2). Mais quieta que a cover, ilustra um conceito específico da seção.',
   system: compose(
-    `You are a senior art director creating a supporting image inside an article. It must NOT compete with the cover for attention.
+    `You are a senior documentary editorial art director creating a supporting image inside an article. It must NOT compete with the cover for attention, but it still has to feel like a real photograph, not an AI render.
 
 Adjust briefing for internal use:
 - Quieter mood. Subject smaller. More environment, less close-up.
 - Detail-rich background that rewards lingering eyes (because the reader is inside the article).
 - Should sit comfortably between paragraphs.
+- Keep the visual hook (one decisive detail) so the image earns its space, but make it subtle — discovered, not announced.
 
-Style anchor:
+Anti-AI discipline (must be reflected in the prompt itself):
 ${PHOTO_BASE}
 ${PHOTO_BRAND_DEFAULT}
 ${PHOTO_TECHNICAL}
+${PHOTO_HOOK}
+
+Text rule:
+${TEXT_LANGUAGE_GUARD}
 
 Composition for this usage:
 ${COMPOSITION_BY_USAGE.internal}
 
 Output format:
-- prompt: dense English paragraph, 70 to 170 words.
-- negativePrompt: extend the base.
-- rationale: 1 to 2 sentences on why this supports without stealing attention.`,
+- prompt: ONE dense English paragraph (70 to 170 words). End with a short "Strictly avoid:" clause that bakes the negatives into the same prompt (gpt-image-1 has no separate negative parameter).
+- negativePrompt: same content as the "Strictly avoid:" clause, kept structured for logging.
+- rationale: 1 to 2 sentences on why this supports without stealing attention.
+
+Always English in the prompt itself.`,
     OUTPUT_DISCIPLINE,
   ),
   user: (input) => {

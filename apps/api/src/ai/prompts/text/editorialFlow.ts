@@ -1,5 +1,5 @@
 import { minutesToWordTarget } from '@bn/shared';
-import { compose, EDITORIAL, OUTPUT_DISCIPLINE, PERSONA, SEO_GEO, CLARITY, AUTHORITY, TONE_DEFAULT } from '../blocks.js';
+import { compose, EDITORIAL, OUTPUT_DISCIPLINE, PERSONA, SEO_GEO, CLARITY, AUTHORITY, NATURAL_VOICE, TONE_DEFAULT } from '../blocks.js';
 import { buildBrandProfile } from '../brand.js';
 import type {
   BrainstormTopicsInput,
@@ -149,7 +149,7 @@ Regras:
 export const writeArticlePrompt: PromptDef<WriteArticleInput> = {
   name: 'write-article',
   category: 'editorial',
-  version: '3.0.0',
+  version: '3.1.0',
   description: 'Executa o outline produzindo o post completo em markdown editorial. Esse é o prompt principal de redação.',
   system: compose(
     PERSONA,
@@ -169,6 +169,7 @@ Execução:
     EDITORIAL,
     SEO_GEO,
     CLARITY,
+    NATURAL_VOICE,
     AUTHORITY,
     TONE_DEFAULT,
     OUTPUT_DISCIPLINE,

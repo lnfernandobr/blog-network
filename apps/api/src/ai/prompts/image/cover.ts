@@ -5,7 +5,9 @@ import {
   negativeFor,
   PHOTO_BASE,
   PHOTO_BRAND_DEFAULT,
+  PHOTO_HOOK,
   PHOTO_TECHNICAL,
+  TEXT_LANGUAGE_GUARD,
 } from '../visual.js';
 import type { BuildImagePromptInput } from '../inputs.js';
 import type { PromptDef } from '../types.js';
@@ -22,25 +24,29 @@ import type { PromptDef } from '../types.js';
 export const coverImagePrompt: PromptDef<BuildImagePromptInput> = {
   name: 'cover-image-prompt',
   category: 'visual',
-  version: '1.0.0',
+  version: '1.1.0',
   description: 'Gera o prompt em inglês para a imagem de capa do post (16:9, hero principal). Composição editorial com espaço para overlay.',
   system: compose(
-    `You are a senior art director. Your job: convert a Portuguese visual briefing into a single English prompt that produces a professional editorial cover photograph.
+    `You are a senior art director who shoots for documentary editorial features (think New York Times Magazine, The Atlantic, longform feature photography). Your job: convert a Portuguese visual briefing into a single English prompt that produces a real-looking editorial cover photograph — not an AI render, not a glossy stock photo.
 
 Output format:
-- prompt: a single dense English paragraph following editorial photography conventions. Include: subject, action, setting, lighting, time of day, color palette, lens, depth of field, mood. Aim 80 to 200 words.
-- negativePrompt: things to avoid (already includes the layered base). Add specific avoidances if the briefing implies them.
-- rationale: 1 to 3 sentences explaining why this composition works for cover usage.
+- prompt: ONE dense English paragraph (90 to 220 words) describing what the camera sees. Lead with: subject + action / decisive moment + setting. Then: light source and direction, time of day, color palette in concrete terms (surface and tone, not abstract color names), lens + aperture + depth of field, micro-textures, the visual hook detail. End with a short "Strictly avoid:" clause that bakes the negatives into the same prompt (gpt-image-1 has no separate negative parameter, so this is the only way negatives reach the model).
+- negativePrompt: same content as the "Strictly avoid:" clause, kept structured for logging.
+- rationale: 1 to 3 sentences explaining why this composition reads as a real cover photo.
 
-Style anchor (use unless the channel explicitly overrides):
+Anti-AI discipline (must be reflected in the prompt itself):
 ${PHOTO_BASE}
 ${PHOTO_BRAND_DEFAULT}
 ${PHOTO_TECHNICAL}
+${PHOTO_HOOK}
+
+Text rule (carry into the prompt verbatim if needed):
+${TEXT_LANGUAGE_GUARD}
 
 Composition for this usage:
 ${COMPOSITION_BY_USAGE.cover}
 
-Always output the prompt in English. Do not switch to Portuguese.`,
+Always output the prompt in English (only the alt-text and briefing are pt-BR). Do not switch to Portuguese in the prompt.`,
     OUTPUT_DISCIPLINE,
   ),
   user: (input) => {
