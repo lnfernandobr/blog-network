@@ -23,7 +23,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/components/ui/toast';
-import { Trash2, Plus, Clock } from 'lucide-react';
+import { Trash2, Plus, Clock, Loader2 } from 'lucide-react';
 
 const TIMEZONES: { value: string; label: string }[] = [
   { value: 'America/Sao_Paulo', label: 'São Paulo / Brasília (UTC-3)' },
@@ -46,6 +46,7 @@ const WEEKDAYS = [
 export function ChannelForm({ initial, channelId }: { initial?: ChannelDto; channelId?: string }) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
+  const [triggering, setTriggering] = useState(false);
   const [form, setForm] = useState<ChannelInput>(() =>
     initial
       ? sanitizeForForm(initial)
@@ -123,12 +124,20 @@ export function ChannelForm({ initial, channelId }: { initial?: ChannelDto; chan
   }
 
   async function triggerNow() {
-    if (!channelId) return;
+    if (!channelId || triggering) return;
+    setTriggering(true);
     try {
-      await api(`/api/v1/runs/trigger/${channelId}`, { method: 'POST' });
-      toast.success('Pipeline disparado — veja em Execuções');
+      const run = await api<{ status: string; error?: string }>(
+        `/api/v1/runs/trigger/${channelId}`,
+        { method: 'POST' },
+      );
+      if (run.status === 'success') toast.success('Post gerado com sucesso');
+      else if (run.status === 'partial') toast.success('Post gerado com avisos (ver Execuções)');
+      else toast.error(run.error ?? 'Pipeline falhou');
     } catch {
       toast.error('Falha ao disparar pipeline');
+    } finally {
+      setTriggering(false);
     }
   }
 
@@ -455,8 +464,19 @@ export function ChannelForm({ initial, channelId }: { initial?: ChannelDto; chan
               <Button type="button" variant="destructive" onClick={onDelete}>
                 <Trash2 className="h-4 w-4" /> Excluir canal
               </Button>
-              <Button type="button" variant="outline" onClick={triggerNow}>
-                Gerar post agora
+              <Button
+                type="button"
+                variant="outline"
+                onClick={triggerNow}
+                disabled={triggering}
+              >
+                {triggering ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" /> Gerando post…
+                  </>
+                ) : (
+                  'Gerar post agora'
+                )}
               </Button>
             </>
           ) : null}

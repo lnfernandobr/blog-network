@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/toast';
-import { Activity, FileText, Radio, Play } from 'lucide-react';
+import { Activity, FileText, Radio, Play, Loader2 } from 'lucide-react';
 
 interface Paginated<T> { items: T[]; total: number; page: number; limit: number; totalPages: number }
 
@@ -18,6 +18,7 @@ export default function DashboardPage() {
   const [posts, setPosts] = useState<PostDto[]>([]);
   const [runs, setRuns] = useState<RunDto[]>([]);
   const [nextRuns, setNextRuns] = useState<Record<string, { cron: string; next: string[] }[]>>({});
+  const [running, setRunning] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     void (async () => {
@@ -52,11 +53,28 @@ export default function DashboardPage() {
   }, []);
 
   async function trigger(channelId: string) {
+    if (running.has(channelId)) return;
+    setRunning((s) => new Set(s).add(channelId));
     try {
-      await api(`/api/v1/runs/trigger/${channelId}`, { method: 'POST' });
-      toast.success('Pipeline disparado');
+      const run = await api<RunDto>(`/api/v1/runs/trigger/${channelId}`, { method: 'POST' });
+      if (run.status === 'success') toast.success('Post gerado com sucesso');
+      else if (run.status === 'partial') toast.success('Post gerado com avisos (ver Execuções)');
+      else toast.error(run.error ?? 'Pipeline falhou');
+      // Atualiza a lista de runs recentes pra refletir a nova execução.
+      try {
+        const r = await api<Paginated<RunDto>>('/api/v1/runs', { query: { limit: 8 } });
+        setRuns(r.items);
+      } catch {
+        /* ignore */
+      }
     } catch {
       toast.error('Falha ao disparar pipeline');
+    } finally {
+      setRunning((s) => {
+        const next = new Set(s);
+        next.delete(channelId);
+        return next;
+      });
     }
   }
 
@@ -123,8 +141,21 @@ export default function DashboardPage() {
                             /{ch.slug} · {ch.timezone} · {ch.publishTimes.length * postsPlanTotal(ch.postsPlan)}/dia
                           </div>
                         </div>
-                        <Button size="sm" variant="outline" onClick={() => trigger(ch.id)}>
-                          <Play className="h-3 w-3" /> Disparar agora
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => trigger(ch.id)}
+                          disabled={running.has(ch.id)}
+                        >
+                          {running.has(ch.id) ? (
+                            <>
+                              <Loader2 className="h-3 w-3 animate-spin" /> Gerando…
+                            </>
+                          ) : (
+                            <>
+                              <Play className="h-3 w-3" /> Disparar agora
+                            </>
+                          )}
                         </Button>
                       </div>
                       {slots.length === 0 ? (

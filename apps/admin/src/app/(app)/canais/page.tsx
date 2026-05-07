@@ -3,19 +3,20 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api';
-import { postsPlanTotal, type ChannelDto } from '@bn/shared';
+import { postsPlanTotal, type ChannelDto, type RunDto } from '@bn/shared';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table';
 import { toast } from '@/components/ui/toast';
-import { Plus, Play, Pencil } from 'lucide-react';
+import { Plus, Play, Pencil, Loader2 } from 'lucide-react';
 
 interface Paginated<T> { items: T[]; total: number }
 
 export default function ChannelsListPage() {
   const [items, setItems] = useState<ChannelDto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [running, setRunning] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     void load();
@@ -34,11 +35,21 @@ export default function ChannelsListPage() {
   }
 
   async function trigger(id: string) {
+    if (running.has(id)) return;
+    setRunning((s) => new Set(s).add(id));
     try {
-      await api(`/api/v1/runs/trigger/${id}`, { method: 'POST' });
-      toast.success('Pipeline disparado');
+      const run = await api<RunDto>(`/api/v1/runs/trigger/${id}`, { method: 'POST' });
+      if (run.status === 'success') toast.success('Post gerado com sucesso');
+      else if (run.status === 'partial') toast.success('Post gerado com avisos (ver Execuções)');
+      else toast.error(run.error ?? 'Pipeline falhou');
     } catch {
       toast.error('Falha ao disparar pipeline');
+    } finally {
+      setRunning((s) => {
+        const next = new Set(s);
+        next.delete(id);
+        return next;
+      });
     }
   }
 
@@ -112,8 +123,21 @@ export default function ChannelsListPage() {
                           <Pencil className="h-3 w-3" /> Editar
                         </Link>
                       </Button>
-                      <Button size="sm" variant="outline" onClick={() => trigger(c.id)}>
-                        <Play className="h-3 w-3" /> Disparar
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => trigger(c.id)}
+                        disabled={running.has(c.id)}
+                      >
+                        {running.has(c.id) ? (
+                          <>
+                            <Loader2 className="h-3 w-3 animate-spin" /> Gerando…
+                          </>
+                        ) : (
+                          <>
+                            <Play className="h-3 w-3" /> Disparar
+                          </>
+                        )}
                       </Button>
                     </div>
                   </TD>
