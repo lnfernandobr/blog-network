@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useLayoutEffect } from 'react';
 import Link from 'next/link';
 
 /* ─── Types ──────────────────────────────────────────────────────────────────── */
@@ -831,8 +831,24 @@ export default function TesteCliente() {
   const [answers, setAnswers] = useState<Answers>({});
   const [scores, setScores] = useState<Scores | null>(null);
 
+  // useLayoutEffect runs sync after DOM mutation, before paint — prevents
+  // the "flash" of new content at old scroll position. Also force instant
+  // behavior to override any global scroll-behavior: smooth.
+  useLayoutEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [stepIdx, view]);
+
+  // Extra safety: also scroll on next frame in case browser does scroll
+  // restoration after our sync call.
   useEffect(() => {
-    window.scrollTo(0, 0);
+    if (typeof window === 'undefined') return;
+    const id = requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+    });
+    return () => cancelAnimationFrame(id);
   }, [stepIdx, view]);
 
   function handleAnswer(id: string, v: number) {
