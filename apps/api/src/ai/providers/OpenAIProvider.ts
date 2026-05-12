@@ -138,11 +138,19 @@ export class OpenAIProvider implements AIProvider {
     const size: '1536x1024' | '1024x1024' | '1024x1536' =
       aspect === 'square' ? '1024x1024' : aspect === 'portrait' ? '1024x1536' : '1536x1024';
 
+    // quality: 'high' é o que diferencia uma foto fotorrealista de um render
+    // genérico. O default da API é 'auto' (escolha do servidor), que tende
+    // a cair em medium para economia. 'high' custa mais por imagem mas é
+    // a única opção que entrega textura real, micro-detalhe de pele e
+    // iluminação documental. Editorial cover não tem espaço pra economizar.
     const response = await this.client.images.generate({
       model: this.imageModel,
       prompt: input.prompt,
       size,
       n: 1,
+      quality: 'high',
+      output_format: 'png',
+      moderation: 'low',
     });
 
     const b64 = response.data?.[0]?.b64_json;
