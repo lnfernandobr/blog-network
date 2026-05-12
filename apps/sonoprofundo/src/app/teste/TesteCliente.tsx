@@ -468,6 +468,222 @@ function ScoreBar({ label, score }: { label: string; score: number }) {
   );
 }
 
+/* ─── Share dialog ───────────────────────────────────────────────────────────── */
+
+function buildShareText(scores: Scores, band: (typeof BANDS)[number], url: string) {
+  return `Meu sono recebeu ${scores.overall}/100 (${band.label}) no Teste de Qualidade do Sono.
+
+Qualidade noturna: ${scores.quality}
+Resistência à sonolência: ${scores.sleepiness}
+Ausência de insônia: ${scores.insomnia}
+Higiene do sono: ${scores.hygiene}
+
+Faça o seu: ${url}`;
+}
+
+function buildShortText(scores: Scores, band: (typeof BANDS)[number]) {
+  return `Pontuei ${scores.overall}/100 (${band.label}) no Teste de Qualidade do Sono. Faça o seu:`;
+}
+
+function ShareDialog({
+  scores,
+  band,
+  onClose,
+}: {
+  scores: Scores;
+  band: (typeof BANDS)[number];
+  onClose: () => void;
+}) {
+  const [copied, setCopied] = useState(false);
+  const [canNativeShare, setCanNativeShare] = useState(false);
+  const [testUrl, setTestUrl] = useState('/teste');
+  const color = scoreColor(scores.overall);
+
+  // Detect Web Share API and build full URL client-side only (avoids hydration mismatch)
+  useEffect(() => {
+    setCanNativeShare(typeof navigator !== 'undefined' && 'share' in navigator);
+    setTestUrl(`${window.location.origin}/teste`);
+  }, []);
+
+  // Lock body scroll while modal is open + Esc to close
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [onClose]);
+
+  const longText = buildShareText(scores, band, testUrl);
+  const shortText = buildShortText(scores, band);
+
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(longText);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2500);
+    } catch {
+      // Fallback for non-https contexts: select via textarea
+      const ta = document.createElement('textarea');
+      ta.value = longText;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        setCopied(true);
+        window.setTimeout(() => setCopied(false), 2500);
+      } finally {
+        document.body.removeChild(ta);
+      }
+    }
+  }
+
+  async function handleNativeShare() {
+    try {
+      await navigator.share({
+        title: 'Teste de Qualidade do Sono',
+        text: shortText,
+        url: testUrl,
+      });
+    } catch {
+      // User cancelled or share denied — silent
+    }
+  }
+
+  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`${shortText} ${testUrl}`)}`;
+  const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shortText)}&url=${encodeURIComponent(testUrl)}`;
+  const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(testUrl)}&text=${encodeURIComponent(shortText)}`;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="share-dialog-title"
+    >
+      <div
+        className="w-full max-w-md bg-[var(--color-ink-night)] border border-[var(--color-border)] rounded-t-2xl sm:rounded-2xl p-6 sm:p-7 max-h-[92vh] overflow-y-auto shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex justify-between items-start mb-5">
+          <div>
+            <p className="kicker mb-1" id="share-dialog-title">
+              Compartilhar resultado
+            </p>
+            <p className="text-xs text-[var(--color-text-faint)]">
+              Escolha como prefere enviar
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-[var(--color-text-faint)] hover:text-[var(--color-text-moon)] transition-colors text-2xl leading-none -mt-2 -mr-1 p-2"
+            aria-label="Fechar"
+          >
+            ×
+          </button>
+        </div>
+
+        {/* Mini score badge */}
+        <div className="flex items-center gap-4 mb-5 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)] p-4">
+          <div
+            className="relative w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0"
+            style={{
+              background: `conic-gradient(${color} 0% ${scores.overall}%, var(--color-ink-fog) ${scores.overall}% 100%)`,
+            }}
+            aria-hidden
+          >
+            <div className="w-[44px] h-[44px] rounded-full bg-[var(--color-ink-night)] flex items-center justify-center">
+              <span className="serif text-base font-normal">{scores.overall}</span>
+            </div>
+          </div>
+          <div className="min-w-0">
+            <p className="serif text-base font-normal leading-tight" style={{ color }}>
+              {band.label}
+            </p>
+            <p className="text-xs text-[var(--color-text-faint)] mt-0.5">
+              {scores.overall} de 100 pontos
+            </p>
+          </div>
+        </div>
+
+        {/* Preview do texto que vai ser enviado */}
+        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-4 mb-5">
+          <p className="text-[10px] text-[var(--color-text-faint)] mb-2 uppercase tracking-widest font-mono font-semibold">
+            Prévia do texto
+          </p>
+          <p className="serif text-sm text-[var(--color-muted)] leading-relaxed whitespace-pre-wrap">
+            {longText}
+          </p>
+        </div>
+
+        {/* Actions */}
+        <div className="space-y-2">
+          {canNativeShare && (
+            <button
+              onClick={handleNativeShare}
+              className="btn-primary text-sm w-full justify-center"
+            >
+              Compartilhar agora
+            </button>
+          )}
+
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-ghost text-sm w-full justify-center"
+            onClick={onClose}
+          >
+            WhatsApp
+          </a>
+
+          <a
+            href={telegramUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-ghost text-sm w-full justify-center"
+            onClick={onClose}
+          >
+            Telegram
+          </a>
+
+          <a
+            href={twitterUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-ghost text-sm w-full justify-center"
+            onClick={onClose}
+          >
+            X (Twitter)
+          </a>
+
+          <button
+            onClick={handleCopy}
+            className={`btn-ghost text-sm w-full justify-center transition-colors ${
+              copied ? 'border-[var(--color-cool-sage)] text-[var(--color-cool-sage)]' : ''
+            }`}
+          >
+            {copied ? 'Copiado para a área de transferência' : 'Copiar texto'}
+          </button>
+        </div>
+
+        <p className="text-xs text-[var(--color-text-faint)] text-center mt-5 leading-relaxed">
+          Seu resultado é privado. Só é enviado o que você escolher compartilhar.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 /* ─── Views ──────────────────────────────────────────────────────────────────── */
 
 function IntroView({ onStart }: { onStart: () => void }) {
@@ -624,6 +840,7 @@ function ResultView({
   const band = getBand(scores.overall);
   const recs = getRecs(scores);
   const color = scoreColor(scores.overall);
+  const [showShare, setShowShare] = useState(false);
   const winHours =
     answers.bedtime !== undefined && answers.waketime !== undefined
       ? sleepWindowHours(answers.bedtime, answers.waketime)
@@ -798,12 +1015,39 @@ function ResultView({
         </div>
       </section>
 
+      {/* SHARE */}
+      <section
+        className="rounded-2xl border border-[var(--color-amber-glow)]/30 p-6 sm:p-8 mb-6 relative overflow-hidden"
+        style={{
+          background:
+            'linear-gradient(135deg, var(--color-amber-ember) 0%, transparent 70%)',
+        }}
+      >
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 relative">
+          <div className="flex-1">
+            <p className="kicker mb-2">Compartilhar</p>
+            <p className="serif text-lg text-[var(--color-text-moon)] leading-snug mb-1">
+              Mostre seu resultado.
+            </p>
+            <p className="text-sm text-[var(--color-muted)] leading-relaxed">
+              Convide amigos a fazer o teste e comparar com você.
+            </p>
+          </div>
+          <button
+            onClick={() => setShowShare(true)}
+            className="btn-primary text-sm whitespace-nowrap w-full sm:w-auto"
+          >
+            Compartilhar resultado →
+          </button>
+        </div>
+      </section>
+
       {/* CTA */}
-      <section className="rounded-2xl border border-[var(--color-amber-glow)]/20 bg-[var(--color-amber-ember)] p-6 sm:p-8 mb-8 text-center">
+      <section className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] p-6 sm:p-8 mb-8 text-center">
         <p className="serif text-base text-[var(--color-text-moon)] mb-4 leading-relaxed">
           Aprofunde seu entendimento sobre sono com nossos artigos.
         </p>
-        <Link href="/blog" className="btn-primary text-sm">
+        <Link href="/blog" className="btn-ghost text-sm">
           Ir para o blog →
         </Link>
       </section>
@@ -819,6 +1063,10 @@ function ResultView({
           Refazer o teste
         </button>
       </div>
+
+      {showShare && (
+        <ShareDialog scores={scores} band={band} onClose={() => setShowShare(false)} />
+      )}
     </div>
   );
 }
