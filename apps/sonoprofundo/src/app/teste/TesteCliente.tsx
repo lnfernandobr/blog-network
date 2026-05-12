@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 /* ─── Types ──────────────────────────────────────────────────────────────────── */
@@ -831,6 +831,10 @@ export default function TesteCliente() {
   const [answers, setAnswers] = useState<Answers>({});
   const [scores, setScores] = useState<Scores | null>(null);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [stepIdx, view]);
+
   function handleAnswer(id: string, v: number) {
     setAnswers((prev) => ({ ...prev, [id]: v }));
   }
@@ -842,7 +846,6 @@ export default function TesteCliente() {
       setScores(calcScores(answers));
       setView('result');
     }
-    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function handleBack() {
@@ -851,7 +854,6 @@ export default function TesteCliente() {
     } else {
       setView('intro');
     }
-    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function handleRestart() {
@@ -859,7 +861,6 @@ export default function TesteCliente() {
     setStepIdx(0);
     setAnswers({});
     setScores(null);
-    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   if (view === 'intro') return <IntroView onStart={() => setView('test')} />;
