@@ -11,19 +11,17 @@ on:
       - '.github/workflows/deploy-api.yml'
   workflow_dispatch: # permite trigger manual pelo painel do GitHub
 
-# Apenas um deploy por vez. Se um novo push chega durante deploy, espera o atual terminar.
+# Apenas um deploy por vez. Se novo push chega durante deploy, espera o atual terminar.
 concurrency:
   group: deploy-api
   cancel-in-progress: false
 
 jobs:
   deploy:
-    name: SSH deploy to VPS
+    name: Pull secrets from Doppler + SSH deploy
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
-    # Só roda se o CI passou — encadeamento defensivo via "needs" requer que o CI
-    # esteja no mesmo workflow file. Aqui usamos check de status do CI.
     steps:
       - name: Wait for CI to succeed
         uses: lewagon/wait-on-check-action@v1.3.4
@@ -34,18 +32,43 @@ jobs:
           wait-interval: 15
           allowed-conclusions: success
 
-      - name: Deploy over SSH
+      - name: Install Doppler CLI
+        uses: dopplerhq/cli-action@v3
+
+      - name: Fetch prod secrets and write .env
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN_PROD }}
+        run: |
+          # Service token de Doppler com read-only no env prod.
+          # Gera apps/api/.env localmente no runner (apagado ao fim do job).
+          doppler secrets download --no-file --format=env --token="$DOPPLER_TOKEN" > /tmp/api.env
+          echo "✓ Pulled $(wc -l < /tmp/api.env) secrets from Doppler"
+
+      - name: Copy .env to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          source: '/tmp/api.env'
+          target: '/opt/blog-network/apps/api/'
+          strip_components: 2
+
+      - name: Pull code + install + reload PM2
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
-          # 10 min é mais que suficiente: git pull + pnpm install + pm2 reload
           command_timeout: 10m
           script: |
             set -euo pipefail
             cd /opt/blog-network
+
+            echo "→ Renaming scp'd file to .env"
+            mv apps/api/api.env apps/api/.env
 
             echo "→ Fetching latest main"
             git fetch origin main
@@ -54,7 +77,7 @@ jobs:
             echo "→ Installing dependencies (api only)"
             pnpm install --filter @bn/api... --frozen-lockfile
 
-            echo "→ Reloading PM2 (zero-downtime if cluster mode, restart if fork)"
+            echo "→ Reloading PM2 (zero-downtime when possible)"
             pm2 reload bn-api --update-env
 
             echo "→ Smoke test"

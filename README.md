@@ -24,18 +24,19 @@ Sistema multi-canal de blogs automatizados — monorepo com **API central**, **A
 
 ## Variáveis de ambiente
 
-A convenção segue o Next.js: **`.env`** é o template de produção (commitado), **`.env.local`** sobrepõe com valores de desenvolvimento (gitignored).
+**Source of truth: [Doppler](https://doppler.com)**. Veja [`SECRETS.md`](SECRETS.md) pro setup completo.
 
-A precedência é `.env.local` → `.env` em todos os apps (API inclusive — `apps/api/src/config/env.ts` carrega ambos com a ordem correta).
-
-```
-apps/api/.env             # produção (preencher antes do deploy)
-apps/api/.env.local       # dev local — sobrescreve com Mongo Atlas no ambiente local
-apps/admin/.env(.local)
-apps/sonoprofundo/.env(.local)
+```bash
+doppler login                # uma vez
+doppler setup                # escolhe project blog-network + config dev
+pnpm dev                     # scripts já passam por `doppler run --`
 ```
 
-Não existe mais `.env.example` — o `.env` em si serve de template.
+Os arquivos `.env` em cada app ainda existem como **templates de prod** (commitados, sem valores). `.env.local` em dev é opcional — só faz sentido quando rodando sem Doppler. Os `.env.local.bak` dos apps são backups da migração inicial pro Doppler e estão gitignored.
+
+Em prod:
+- **VPS**: GitHub Actions puxa secrets do Doppler e copia o `.env` pro VPS antes de cada deploy
+- **Vercel**: integração Doppler ↔ Vercel sincroniza automaticamente
 
 ## Pré-requisitos
 

@@ -8,16 +8,18 @@
     "node": ">=22.0.0"
   },
   "scripts": {
-    "dev": "pnpm -r --parallel dev",
-    "dev:api": "pnpm --filter @bn/api dev",
-    "dev:admin": "pnpm --filter @bn/admin dev",
-    "dev:sonoprofundo": "pnpm --filter @bn/sonoprofundo dev",
-    "dev:social-admin": "pnpm --filter @bn/social-admin dev",
+    "_comment": "Scripts de dev passam por `doppler run` — Doppler injeta as env vars no processo. Setup: doppler login && doppler setup. Sem Doppler: cd apps/<app> && pnpm dev (usa .env.local local).",
+    "dev": "doppler run -- pnpm -r --parallel dev",
+    "dev:api": "doppler run -- pnpm --filter @bn/api dev",
+    "dev:admin": "doppler run -- pnpm --filter @bn/admin dev",
+    "dev:sonoprofundo": "doppler run -- pnpm --filter @bn/sonoprofundo dev",
+    "dev:social-admin": "doppler run -- pnpm --filter @bn/social-admin dev",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
     "lint": "pnpm -r lint",
-    "seed": "pnpm --filter @bn/api seed",
-    "format": "prettier --write \"**/*.{ts,tsx,js,json,md,css}\""
+    "seed": "doppler run -- pnpm --filter @bn/api seed",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md,css}\"",
+    "secrets:pull": "doppler secrets download --no-file --format=env > .env.dopplerpulled.local && echo '✓ Secrets pulled to .env.dopplerpulled.local (gitignored)'"
   },
   "devDependencies": {
     "prettier": "3.8.3",
