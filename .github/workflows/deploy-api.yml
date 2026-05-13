@@ -85,8 +85,16 @@ jobs:
             echo "→ Reloading PM2 (zero-downtime when possible)"
             pm2 reload bn-api --update-env
 
+            echo "→ Waiting for app to start"
+            sleep 8
+
+            echo "→ PM2 status"
+            pm2 status
+
+            echo "→ App logs (últimas 40 linhas)"
+            pm2 logs bn-api --lines 40 --nostream || true
+
             echo "→ Smoke test"
-            sleep 3
             curl -fsS http://localhost:4000/health
 
             echo "✓ Deploy completed at $(date -u +%FT%TZ)"
