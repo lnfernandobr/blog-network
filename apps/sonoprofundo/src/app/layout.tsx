@@ -1,11 +1,14 @@
 import type { Metadata, Viewport } from 'next';
 import { Newsreader, Inter_Tight, JetBrains_Mono } from 'next/font/google';
+import Script from 'next/script';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { getChannel } from '@/lib/api';
 import { buildBaseMetadata, jsonLd } from '@/lib/seo';
 import { organizationLd, websiteLd } from '@/lib/jsonld';
 import './globals.css';
+
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
 const newsreader = Newsreader({
   subsets: ['latin'],
@@ -60,6 +63,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         />
       </head>
       <body className="min-h-screen flex flex-col">
+        {GA_ID && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script id="ga-init" strategy="afterInteractive">
+              {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GA_ID}');`}
+            </Script>
+          </>
+        )}
         <Header channel={channel} />
         <main id="main" className="flex-1">{children}</main>
         <Footer channel={channel} />
