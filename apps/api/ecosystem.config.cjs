@@ -20,8 +20,8 @@ module.exports = {
     {
       name: 'bn-api',
       cwd: './apps/api',
-      script: 'pnpm',
-      args: 'start',
+      script: 'doppler',
+      args: 'run -- pnpm start',
       interpreter: 'none',
       env: {
         NODE_ENV: 'production',

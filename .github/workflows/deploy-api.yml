@@ -23,9 +23,6 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
       - name: Wait for CI to succeed
         uses: lewagon/wait-on-check-action@v1.3.4
         with:
@@ -34,31 +31,6 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           wait-interval: 15
           allowed-conclusions: success
-
-      - name: Install Doppler CLI
-        uses: dopplerhq/cli-action@v3
-
-      - name: Fetch prod secrets into workspace
-        env:
-          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN_PROD }}
-        run: |
-          # appleboy/scp-action roda em Docker e só enxerga $GITHUB_WORKSPACE.
-          # Por isso escrevemos o arquivo no workspace (não em /tmp).
-          doppler secrets download \
-            --no-file --format=env \
-            --token="$DOPPLER_TOKEN" \
-            > deploy.env
-          echo "✓ Pulled $(wc -l < deploy.env) secrets from Doppler"
-
-      - name: Copy .env to VPS
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT || 22 }}
-          source: 'deploy.env'
-          target: '/opt/blog-network/apps/api/'
 
       - name: Pull code + install + reload PM2
         uses: appleboy/ssh-action@v1.2.0
@@ -76,25 +48,15 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
 
-            echo "→ Activating new .env"
-            mv apps/api/deploy.env apps/api/.env
-
             echo "→ Installing dependencies (api only)"
             pnpm install --filter @bn/api... --frozen-lockfile
 
             echo "→ Reloading PM2 (zero-downtime when possible)"
+            # Secrets injetados pelo Doppler CLI direto no processo (sem .env)
             pm2 reload bn-api --update-env
 
-            echo "→ Waiting for app to start"
-            sleep 8
-
-            echo "→ PM2 status"
-            pm2 status
-
-            echo "→ App logs (últimas 40 linhas)"
-            pm2 logs bn-api --lines 40 --nostream || true
-
             echo "→ Smoke test"
+            sleep 5
             curl -fsS http://localhost:4000/health
 
             echo "✓ Deploy completed at $(date -u +%FT%TZ)"
