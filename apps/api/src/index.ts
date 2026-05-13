@@ -3,6 +3,7 @@ import { connectDb, disconnectDb } from './config/db.js';
 import { env } from './config/env.js';
 import { logger } from './config/logger.js';
 import { bootstrapScheduler } from './scheduler/index.js';
+import { bootstrapSocialScheduler } from './scheduler/socialScheduler.js';
 import { bootstrapAdmin } from './seed/bootstrapAdmin.js';
 import { seedSonoprofundo } from './seed/sonoprofundoSeed.js';
 import { ensureUploadsDir } from './services/uploads.js';
@@ -13,6 +14,7 @@ async function main() {
   await bootstrapAdmin();
   await seedSonoprofundo();
   await bootstrapScheduler();
+  await bootstrapSocialScheduler();
   const app = createApp();
   const server = app.listen(env.API_PORT, () => {
     logger.info({ port: env.API_PORT }, 'api listening');

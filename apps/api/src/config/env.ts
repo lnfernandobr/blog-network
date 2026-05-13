@@ -43,6 +43,24 @@ const envSchema = z.object({
   // Com chave (gratuita, sem cartão): 25k req/dia.
   // https://console.cloud.google.com/apis/credentials
   GOOGLE_PAGESPEED_API_KEY: z.string().optional(),
+
+  // TikTok Content Posting API credentials
+  // https://developers.tiktok.com/
+  TIKTOK_CLIENT_KEY: z.string().optional(),
+  TIKTOK_CLIENT_SECRET: z.string().optional(),
+
+  // TikTok domain ownership verification key. Get from TikTok portal →
+  // Content Posting API → Verify domains (file-based method). We serve
+  // /tiktok<KEY>.txt with the matching content.
+  TIKTOK_DOMAIN_VERIFICATION_KEY: z.string().optional(),
+
+  // Social admin URL — used as OAuth callback redirect destination
+  SOCIAL_ADMIN_URL: z.string().optional(),
+
+  // Resend email notifications
+  // https://resend.com
+  RESEND_API_KEY: z.string().optional(),
+  RESEND_FROM_EMAIL: z.string().optional(),
 });
 
 export const env = envSchema.parse(process.env);

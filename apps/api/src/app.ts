@@ -12,6 +12,7 @@ import { publicRouter } from './routes/public.js';
 import { schedulerRouter } from './routes/schedulerInfo.js';
 import { settingsRouter } from './routes/settings.js';
 import { promptsRouter } from './routes/prompts.js';
+import { socialRouter } from './routes/social/index.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { requestLog } from './middleware/requestLog.js';
 import { uploadsDir } from './services/uploads.js';
@@ -52,6 +53,19 @@ export function createApp(): Express {
     res.json({ status: 'ok', uptime: process.uptime() });
   });
 
+  // TikTok domain ownership verification — file-based method.
+  // TikTok requests GET /tiktok<KEY>.txt and expects body to be
+  // "tiktok-developers-site-verification=<KEY>". Configured via env var.
+  app.get(/^\/tiktok([A-Za-z0-9]+)\.txt$/, (req, res) => {
+    const expected = env.TIKTOK_DOMAIN_VERIFICATION_KEY;
+    const key = (req.params as any)[0] as string | undefined;
+    if (!expected || !key || key !== expected) {
+      res.status(404).end();
+      return;
+    }
+    res.type('text/plain').send(`tiktok-developers-site-verification=${expected}`);
+  });
+
   app.use('/api/v1/auth', authRouter);
   app.use('/api/v1/channels', channelsRouter);
   app.use('/api/v1/categories', categoriesRouter);
@@ -62,6 +76,7 @@ export function createApp(): Express {
   app.use('/api/v1/settings', settingsRouter);
   app.use('/api/v1/prompts', promptsRouter);
 
+  app.use('/api/v1/social', socialRouter);
   app.use('/api/v1/public', publicRouter);
 
   app.use(notFoundHandler);

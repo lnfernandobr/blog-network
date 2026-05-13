@@ -12,6 +12,7 @@
     "dev:api": "pnpm --filter @bn/api dev",
     "dev:admin": "pnpm --filter @bn/admin dev",
     "dev:sonoprofundo": "pnpm --filter @bn/sonoprofundo dev",
+    "dev:social-admin": "pnpm --filter @bn/social-admin dev",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
     "lint": "pnpm -r lint",
