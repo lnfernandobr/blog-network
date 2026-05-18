@@ -47,15 +47,6 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
 
-            echo "→ Installing dependencies (api only)"
-            pnpm install --filter @fernandolimaindie/api... --frozen-lockfile
-
-            echo "→ Reloading PM2 (zero-downtime when possible)"
-            # Secrets injected by Doppler CLI directly into the process (no .env)
-            pm2 reload fernandolimaindie-api --update-env
-
-            echo "→ Smoke test"
-            sleep 5
-            curl -fsS http://localhost:4000/health
-
-            echo "✓ Deploy completed at $(date -u +%FT%TZ)"
+            # deploy-on-host.sh is self-healing: reaps foreign PM2 apps and
+            # verifies the right app is actually responding on :4000.
+            bash scripts/deploy-on-host.sh

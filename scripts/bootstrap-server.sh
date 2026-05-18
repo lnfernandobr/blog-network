@@ -46,9 +46,6 @@ cd "${APP_DIR}"
 git fetch origin main
 git reset --hard origin/main
 
-log "Installing API dependencies"
-pnpm install --filter @fernandolimaindie/api... --frozen-lockfile
-
 log "Preparing log dir ${LOG_DIR}"
 sudo mkdir -p "${LOG_DIR}"
 sudo chown "${USER}:${USER}" "${LOG_DIR}"
@@ -62,19 +59,10 @@ if ! doppler configure get token >/dev/null 2>&1; then
   exit 1
 fi
 
-log "Starting (or reloading) PM2 process"
-if pm2 describe fernandolimaindie-api >/dev/null 2>&1; then
-  pm2 reload fernandolimaindie-api --update-env
-else
-  pm2 start apps/api/ecosystem.config.cjs
-fi
+log "Delegating to deploy-on-host.sh (install + reap + start + smoke test)"
+bash "${APP_DIR}/scripts/deploy-on-host.sh"
 
 log "Persisting PM2 across reboots"
-pm2 save
 sudo env PATH=$PATH:/usr/bin pm2 startup systemd -u "${USER}" --hp "$HOME" | tail -n 1 | sudo bash || true
-
-log "Smoke test"
-sleep 5
-curl -fsS http://localhost:4000/health && echo
 
 log "Done."
