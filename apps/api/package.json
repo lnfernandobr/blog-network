@@ -2,7 +2,7 @@
   "name": "@fernandolimaindie/api",
   "version": "1.0.0",
   "private": true,
-  "description": "fernandolimaindie API",
+  "description": "Quiet little API powering Fernando's indie projects — auth, health, and not much else by design.",
   "type": "module",
   "scripts": {
     "dev": "node --watch src/index.js",
