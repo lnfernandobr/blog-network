@@ -5,13 +5,12 @@ on:
     branches: [main]
     paths:
       - 'apps/api/**'
-      - 'packages/shared/**'
       - 'pnpm-lock.yaml'
       - 'package.json'
       - '.github/workflows/deploy-api.yml'
-  workflow_dispatch: # permite trigger manual pelo painel do GitHub
+  workflow_dispatch: # allows manual trigger from GitHub UI
 
-# Apenas um deploy por vez. Se novo push chega durante deploy, espera o atual terminar.
+# Only one deploy at a time. If a new push arrives during a deploy, wait for the current one to finish.
 concurrency:
   group: deploy-api
   cancel-in-progress: false
@@ -52,7 +51,7 @@ jobs:
             pnpm install --filter @fernandolimaindie/api... --frozen-lockfile
 
             echo "→ Reloading PM2 (zero-downtime when possible)"
-            # Secrets injetados pelo Doppler CLI direto no processo (sem .env)
+            # Secrets injected by Doppler CLI directly into the process (no .env)
             pm2 reload fernandolimaindie-api --update-env
 
             echo "→ Smoke test"
