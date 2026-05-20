@@ -178,6 +178,60 @@ function PhoneSignup({ buttonText = 'Avisem quando lançar 💌', primary = '#FF
   );
 }
 
+function FaqItem({ q, a }) {
+  return (
+    <details style={{
+      background: 'white', borderRadius: 18, padding: '14px 18px',
+      border: '2px solid #FCE2C2',
+      boxShadow: '0 4px 0 rgba(46,26,15,0.08)',
+    }}>
+      <summary style={{
+        fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 16,
+        color: '#2E1A0F', cursor: 'pointer', listStyle: 'none',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10,
+      }}>
+        <span>{q}</span>
+        <span aria-hidden="true" style={{ color: '#B85539', fontSize: 22, fontWeight: 800 }}>+</span>
+      </summary>
+      <p style={{
+        fontSize: 14, color: '#5A3826', fontWeight: 600,
+        marginTop: 10, lineHeight: 1.5,
+      }}>{a}</p>
+    </details>
+  );
+}
+
+const FAQ_ITEMS = [
+  {
+    q: 'O que é o brotinho?',
+    a: 'Um pet-plantinha digital pra casal cuidar junto. Vocês entram no mesmo broto, um rega, o outro dá sol, conversam com ela e veem ela crescer em 5 fases até florescer.',
+  },
+  {
+    q: 'Quando lança?',
+    a: 'Dia 12 de junho de 2026, Dia dos Namorados no Brasil. Primeiro pra Android, gratuito.',
+  },
+  {
+    q: 'Quanto custa?',
+    a: 'Gratuito no lançamento. Sem assinatura, sem compra obrigatória.',
+  },
+  {
+    q: 'Funciona em iPhone?',
+    a: 'No lançamento só Android. iOS chega logo depois. Entre na lista e a gente avisa por WhatsApp quando liberar.',
+  },
+  {
+    q: 'Preciso jogar com alguém?',
+    a: 'Sim, o brotinho é pra dois. Você convida seu par com um código bobinho (tipo AMOR-247) e os dois entram no mesmo broto.',
+  },
+  {
+    q: 'Quanto tempo leva por dia?',
+    a: 'Uns 3 minutos. Um rega, o outro dá sol, os dois trocam recadinho com a plantinha.',
+  },
+  {
+    q: 'É bom como presente de Dia dos Namorados?',
+    a: 'Foi feito pra isso. Um broto que vocês plantam juntos no dia 12 de junho e cuidam por 6 meses até ele florescer.',
+  },
+];
+
 function Step({ n, title, desc, color }) {
   return (
     <div style={{
@@ -223,7 +277,7 @@ export default function LandingPage() {
           fontWeight: 800, fontSize: 11, color: '#E83768',
           background: '#FFE9F0', padding: '6px 12px', borderRadius: 999,
           border: '1.5px solid #FFB8C8',
-        }}>🚀 LANÇA 05.06</div>
+        }}>🚀 LANÇA 12.06</div>
       </div>
 
       <section style={{
@@ -258,7 +312,7 @@ export default function LandingPage() {
             marginTop: 14, lineHeight: 1.4,
           }}>
             Um pet-plantinha pro casal regar, conversar e ver crescer.
-            <b style={{ color: '#2E1A0F' }}> 3 minutos por dia, juntos.</b>
+            <b style={{ color: '#2E1A0F' }}> 3 minutos por dia, juntos.</b> Lança 12 de junho no Dia dos Namorados.
           </p>
 
           <div style={{ marginTop: 22 }}>
@@ -340,7 +394,7 @@ export default function LandingPage() {
 
         <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
           <Step n="1" title="Convide seu par" desc="Um código bobinho tipo AMOR-247. Vocês entram no mesmo broto." color="#FF89A8" />
-          <Step n="2" title="Plantem a sementinha" desc="Escolham um nome — pronto, ela é de vocês dois." color="#FFC861" />
+          <Step n="2" title="Plantem a sementinha" desc="Escolham um nome. Pronto, ela é de vocês dois." color="#FFC861" />
           <Step n="3" title="Cuidem todo dia" desc="Um rega, o outro dá sol, os dois conversam. Streak 🔥" color="#76C079" />
           <Step n="4" title="Vejam ela florescer" desc="6 meses pra chegar na fase Florida. Igual vocês." color="#FF5E84" />
         </div>
@@ -356,7 +410,7 @@ export default function LandingPage() {
           fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 800,
           color: '#2E1A0F', marginTop: 4, lineHeight: 1.0, letterSpacing: -0.5,
         }}>
-          Crescem juntos —<br/>vocês e ela.
+          Vocês crescem.<br/>Ela também.
         </h2>
 
         <div style={{
@@ -430,6 +484,24 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <section id="faq" style={{ padding: '40px 20px 24px' }} aria-labelledby="faq-title">
+        <div style={{ fontSize: 11, letterSpacing: 1.8, color: '#B85539', fontWeight: 800 }}>
+          PERGUNTAS QUE TODO MUNDO FAZ
+        </div>
+        <h2 id="faq-title" style={{
+          fontFamily: 'var(--font-display)', fontSize: 30, fontWeight: 800,
+          color: '#2E1A0F', marginTop: 4, lineHeight: 1.05, letterSpacing: -0.5,
+        }}>
+          A gente já te conta.
+        </h2>
+
+        <div style={{ marginTop: 22, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {FAQ_ITEMS.map((item) => (
+            <FaqItem key={item.q} q={item.q} a={item.a} />
+          ))}
+        </div>
+      </section>
+
       <section style={{
         padding: '40px 22px 30px', textAlign: 'center',
         background: 'linear-gradient(180deg, #FFE9F0 0%, #FFB8C8 60%, #FF89A8 100%)',
@@ -447,10 +519,10 @@ export default function LandingPage() {
           color: '#2E1A0F', lineHeight: 1.0, letterSpacing: -0.8,
         }}>
           Plantem algo juntos<br/>
-          em <span style={{ fontFamily: 'var(--font-brand)', color: '#B82456', fontWeight: 400 }}>05.06.</span>
+          em <span style={{ fontFamily: 'var(--font-brand)', color: '#B82456', fontWeight: 400 }}>12.06.</span>
         </h2>
         <p style={{ fontSize: 14, color: '#2E1A0F', fontWeight: 700, marginTop: 10, opacity: 0.85 }}>
-          Lançamento 05 de junho · Android · grátis
+          Lançamento 12 de junho · Dia dos Namorados · Android · grátis
         </p>
 
         <div style={{ marginTop: 24, position: 'relative', zIndex: 2 }}>
@@ -458,7 +530,7 @@ export default function LandingPage() {
         </div>
 
         <div style={{ marginTop: 16, fontSize: 12, fontWeight: 700, color: '#5A3826' }}>
-          a gente avisa por WhatsApp — sem spam, prometemos 💚
+          a gente avisa por WhatsApp. Sem spam, prometemos 💚
         </div>
       </section>
 
