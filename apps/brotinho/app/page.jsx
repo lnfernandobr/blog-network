@@ -39,6 +39,9 @@ function MiniPhone({ width = 252, height = 520, children, rotate = 0 }) {
 
 const WAITLIST_KEY = 'brotinho_waitlist';
 const BASE_COUNT = 1847;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000';
+const WAITLIST_ENDPOINT = `${API_BASE_URL}/api/v1/waitlist`;
+const WAITLIST_SOURCE = 'brotinho';
 
 function readWaitlist() {
   if (typeof window === 'undefined') return [];
@@ -47,6 +50,20 @@ function readWaitlist() {
   } catch {
     return [];
   }
+}
+
+async function submitToWaitlist(digits) {
+  const res = await fetch(WAITLIST_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone: digits, source: WAITLIST_SOURCE }),
+  });
+  if (!res.ok) {
+    const detail = await res.json().catch(() => null);
+    const message = detail?.error?.message || `Falhou (${res.status})`;
+    throw new Error(message);
+  }
+  return res.json();
 }
 
 function formatPhone(raw) {
@@ -60,22 +77,37 @@ function formatPhone(raw) {
 function PhoneSignup({ buttonText = 'Avisem quando lançar 💌', primary = '#FF3C77', onSubmit }) {
   const [phone, setPhone] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
 
-  const handle = (e) => {
+  const handle = async (e) => {
     e.preventDefault();
+    if (submitting) return;
     const digits = phone.replace(/\D/g, '');
     if (digits.length < 10) return;
-    const all = readWaitlist();
-    if (!all.includes(digits)) {
-      all.push(digits);
-      try {
-        localStorage.setItem(WAITLIST_KEY, JSON.stringify(all));
-      } catch {}
-      if (typeof window.gtag === 'function') window.gtag('event', 'waitlist_signup');
-      if (typeof window.fbq === 'function') window.fbq('track', 'Lead');
+
+    setSubmitting(true);
+    setError(null);
+    try {
+      const result = await submitToWaitlist(digits);
+      const all = readWaitlist();
+      if (!all.includes(digits)) {
+        all.push(digits);
+        try {
+          localStorage.setItem(WAITLIST_KEY, JSON.stringify(all));
+        } catch {}
+        if (!result?.alreadyOnList) {
+          if (typeof window.gtag === 'function') window.gtag('event', 'waitlist_signup');
+          if (typeof window.fbq === 'function') window.fbq('track', 'Lead');
+        }
+      }
+      setSubmitted(true);
+      onSubmit?.(digits);
+    } catch (err) {
+      setError(err?.message || 'Não rolou agora. Tenta de novo em alguns segundos 💚');
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitted(true);
-    onSubmit?.(digits);
   };
 
   if (submitted) {
@@ -126,13 +158,22 @@ function PhoneSignup({ buttonText = 'Avisem quando lançar 💌', primary = '#FF
           }}
         />
       </div>
-      <button type="submit" style={{
+      <button type="submit" disabled={submitting} style={{
         width: '100%', marginTop: 10, background: primary, color: 'white',
         border: 'none', borderRadius: 18, padding: '20px',
         fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 19,
         boxShadow: '0 6px 0 #B82456, 0 14px 30px rgba(255,60,119,0.35)',
-        cursor: 'pointer', letterSpacing: 0.2,
-      }}>{buttonText}</button>
+        cursor: submitting ? 'wait' : 'pointer', letterSpacing: 0.2,
+        opacity: submitting ? 0.7 : 1,
+      }}>{submitting ? 'Mandando…' : buttonText}</button>
+      {error && (
+        <div role="alert" style={{
+          marginTop: 10, padding: '10px 14px', borderRadius: 12,
+          background: '#FFE9F0', color: '#B82456',
+          fontSize: 13, fontWeight: 700, textAlign: 'center',
+          border: '1.5px solid #FFB8C8',
+        }}>{error}</div>
+      )}
     </form>
   );
 }
