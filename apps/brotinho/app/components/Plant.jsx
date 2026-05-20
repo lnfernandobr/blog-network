@@ -3,7 +3,7 @@
 // revelada conforme o casal cuida.
 // Moods preserved for API compatibility but the artwork doesn't react to them.
 
-const SEED_ART  = '/using-the-exact-same-soft-hand-drawn-digital-illus.png';
+const SEED_ART  = '/semente.png';
 const PLANT_ART = '/cute-round-mascot-character--a-potted-houseplant-f.png';
 
 function PlantArt({ src, size, wobble, alt }) {
